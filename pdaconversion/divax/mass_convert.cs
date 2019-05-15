@@ -62,9 +62,10 @@ namespace ft_module_parser.pdaconversion.divax
             {
                 Thread.CurrentThread.IsBackground = true;
                 auth3d.ExtractA3D(path, acpath, auth3d_db);
-                currentWorker--;
+                Interlocked.Decrement(ref currentWorker);
             }).Start();
-            currentWorker++;
+            Interlocked.Increment(ref currentWorker);
+
 
             foreach (string file in Directory.EnumerateFiles(path, "stgpv*.farc", SearchOption.TopDirectoryOnly))
             {
@@ -77,9 +78,9 @@ namespace ft_module_parser.pdaconversion.divax
                     Thread.CurrentThread.IsBackground = true;
                     var le_model = divax.Stripify(file);
                     model_list.Push(le_model);
-                    currentWorker--;
+                    Interlocked.Decrement(ref currentWorker);
                 }).Start();
-                currentWorker++;
+                Interlocked.Increment(ref currentWorker);
             }
 
             foreach (string file in Directory.EnumerateFiles(path, "effpv*.farc", SearchOption.TopDirectoryOnly))
@@ -93,10 +94,11 @@ namespace ft_module_parser.pdaconversion.divax
                     Thread.CurrentThread.IsBackground = true;
                     var le_model = divax.Stripify(file);
                     model_list.Push(le_model);
-                    currentWorker--;
+                    Interlocked.Decrement(ref currentWorker);
                 }).Start();
-                currentWorker++;
+                Interlocked.Increment(ref currentWorker);
             }
+            
 
             while (currentWorker != 0)
             {
@@ -107,9 +109,9 @@ namespace ft_module_parser.pdaconversion.divax
             {
                 Thread.CurrentThread.IsBackground = true;
                 auth3d.ConvertA3D(path, acpath, auth3d_db);
-                currentWorker--;
+                Interlocked.Decrement(ref currentWorker);
             }).Start();
-            currentWorker++;
+            Interlocked.Increment(ref currentWorker);
 
             var texturedb = new TextureDatabase();
             texturedb.Load(texdbpath);
