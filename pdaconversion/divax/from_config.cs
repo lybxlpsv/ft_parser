@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MikuMikuModel.Logs;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace ft_module_parser.pdaconversion.divax
 
             if (!File.Exists("config_x.txt"))
             {
-                Console.WriteLine("config_x.txt not found");
+                Logs.WriteLine("config_x.txt not found");
                 Console.ReadKey();
             }
 
@@ -83,7 +84,7 @@ namespace ft_module_parser.pdaconversion.divax
             }
             else
             {
-                Console.WriteLine("You did not edit config.ini");
+                Logs.WriteLine("You did not edit config.ini");
                 Console.ReadKey();
             }
         }

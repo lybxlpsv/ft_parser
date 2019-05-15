@@ -57,6 +57,14 @@ namespace ft_module_parser.pdaconversion.divax
             objdb.Load(objdbpath);
             staged.Load(stagedbpath);
             auth3d_db.load(a3ddbpath);
+            
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                auth3d.ExtractA3D(path, acpath, auth3d_db);
+                currentWorker--;
+            }).Start();
+            currentWorker++;
 
             foreach (string file in Directory.EnumerateFiles(path, "stgpv*.farc", SearchOption.TopDirectoryOnly))
             {

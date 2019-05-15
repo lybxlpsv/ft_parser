@@ -9,6 +9,7 @@ using MikuMikuModel.FarcPack;
 using KKtMain = KKtLib.Main;
 using KKtA3DA = KKtLib.A3DA.A3DA;
 using System.Threading;
+using MikuMikuModel.Logs;
 
 namespace ft_module_parser.pdaconversion.divax
 {
@@ -16,47 +17,70 @@ namespace ft_module_parser.pdaconversion.divax
     {
         public static int currentWorker = 0;
         public static int maxWorker = 4;
-        public static void ConvertA3D(string path, string acpath, a3ds a3db, divamodgen divamods = null)
-        {
-            maxWorker = Environment.ProcessorCount - 2;
 
+        public static void ExtractA3D(string path, string acpath, a3ds a3db, divamodgen divamods = null)
+        {
             Directory.CreateDirectory("a3d");
             //Directory.CreateDirectory("a3d\\common");
+
+            foreach (string file in Directory.EnumerateFiles(path, "effstgpv*.farc", SearchOption.TopDirectoryOnly))
+            {
+                if (!file.Contains("ptc"))
+                {
+                    Tools.Extract(file, "a3d\\" + Path.GetFileNameWithoutExtension(file).Replace("effstgpv0", "EFFSTGPV8").ToUpper() + "\\");
+                    var check = a3db.a3d_dbs.Any(c => c.rawrows.Any(d => d.Contains(Path.GetFileNameWithoutExtension(file).Replace("effstgpv", "EFFSTGPV").ToUpper())));
+                    if (!check)
+                    {
+                        a3d newa3d = new a3d(0);
+                        newa3d.id = a3db.a3d_dbs.Max(c => c.id) + 1;
+                        newa3d.rawrows.Add(".value=" + Path.GetFileNameWithoutExtension(file).Replace("effstgpv", "EFFSTGPV").ToUpper());
+                        a3db.a3d_dbs.Add(newa3d);
+                    }
+                }
+            }
+
+            foreach (string file in Directory.EnumerateFiles("a3d\\", "*.a3da", SearchOption.AllDirectories))
+            {
+                File.Move(file, Path.GetDirectoryName(file) + "\\" + Path.GetFileNameWithoutExtension(file).ToUpper().Replace("STGPV0", "STGPV8") + ".a3da");
+            }
 
             foreach (string file in Directory.EnumerateFiles(path, "a3d_effpv*.farc", SearchOption.TopDirectoryOnly))
             {
                 Tools.Extract(file, "a3d\\" + Path.GetFileNameWithoutExtension(file).Replace("a3d_effpv", "EFFSTGPV").ToUpper() + "\\");
-                a3d newa3d = new a3d(0);
-                
-                newa3d.id = a3db.a3d_dbs.Max(c => c.id) + 1;
-                newa3d.rawrows.Add(".value=" + Path.GetFileNameWithoutExtension(file).Replace("a3d_effpv", "EFFSTGPV").ToUpper());
-                a3db.a3d_dbs.Add(newa3d);
-            }
 
-            foreach (string file in Directory.EnumerateFiles(path, "effstgpv*.farc", SearchOption.TopDirectoryOnly))
-            {
-                Tools.Extract(file, "a3d\\" + Path.GetFileNameWithoutExtension(file).Replace("a3d_effpv", "EFFSTGPV").ToUpper() + "\\");
-                a3d newa3d = new a3d(0);
-
-                newa3d.id = a3db.a3d_dbs.Max(c => c.id) + 1;
-                newa3d.rawrows.Add(".value=" + Path.GetFileNameWithoutExtension(file).Replace("a3d_effpv", "EFFSTGPV").ToUpper());
-                a3db.a3d_dbs.Add(newa3d);
+                var check = a3db.a3d_dbs.Any(c => c.rawrows.Any(d => d.Contains(Path.GetFileNameWithoutExtension(file).Replace("effstgpv", "EFFSTGPV").ToUpper())));
+                if (!check)
+                {
+                    a3d newa3d = new a3d(0);
+                    newa3d.id = a3db.a3d_dbs.Max(c => c.id) + 1;
+                    newa3d.rawrows.Add(".value=" + Path.GetFileNameWithoutExtension(file).Replace("a3d_effpv", "EFFSTGPV").ToUpper());
+                    a3db.a3d_dbs.Add(newa3d);
+                }
             }
 
             foreach (string file in Directory.EnumerateFiles(path, "CAMPV*.farc", SearchOption.TopDirectoryOnly))
             {
                 Tools.Extract(file, "a3d\\" + Path.GetFileNameWithoutExtension(file).ToUpper() + "\\");
-                a3d newa3d = new a3d(0);
-                newa3d.id = a3db.a3d_dbs.Max(c => c.id) + 1;
-                newa3d.rawrows.Add(".value=" + Path.GetFileNameWithoutExtension(file).ToUpper());
-                a3db.a3d_dbs.Add(newa3d);
+                var check = a3db.a3d_dbs.Any(c => c.rawrows.Any(d => d.Contains(Path.GetFileNameWithoutExtension(file).ToUpper())));
+                if (!check)
+                {
+                    a3d newa3d = new a3d(0);
+                    newa3d.id = a3db.a3d_dbs.Max(c => c.id) + 1;
+                    newa3d.rawrows.Add(".value=" + Path.GetFileNameWithoutExtension(file).ToUpper());
+                    a3db.a3d_dbs.Add(newa3d);
+                }
             }
 
             foreach (string file in Directory.EnumerateFiles("a3d\\", "*.a3da", SearchOption.AllDirectories))
             {
                 File.Move(file, Path.GetDirectoryName(file) + "\\" + Path.GetFileNameWithoutExtension(file).ToUpper().Replace("EFFPV", "STGPV") + ".a3da");
             }
+        }
 
+        public static void ConvertA3D(string path, string acpath, a3ds a3db, divamodgen divamods = null)
+        {
+            maxWorker = Environment.ProcessorCount - 2;
+            
             foreach (string file in Directory.EnumerateFiles("a3d\\", "*.a3da", SearchOption.AllDirectories))
             {
                 while (currentWorker > maxWorker)
@@ -119,19 +143,35 @@ namespace ft_module_parser.pdaconversion.divax
                 }
                 outp.Close();
 
-
                 if ((divamods != null) && (file.Contains("STGPV")))
                 {
                     int pvid = int.Parse(Path.GetFileName(file).Substring(5, 3));
-
-                    var check2 = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
-                    if (check2 == null)
                     {
-                        divamods.Divamods.Add(new pdaconversion.divamods(pvid));
-                        check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
+                        var check2 = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
+                        if (check2 == null)
+                        {
+                            divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                            check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
+                        }
+                        check2.a3da.Add(Path.GetFileNameWithoutExtension(file));
                     }
-                    check2.a3da.Add(Path.GetFileNameWithoutExtension(file));
+
+                    {
+                        if (!Path.GetFileNameWithoutExtension(file).Contains("effpv"))
+                        {
+                            var check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).FirstOrDefault();
+                            if (check2 == null)
+                            {
+                                divamods.Divamods.Add(new pdaconversion.divamods(pvid - 100));
+                                check2 = divamods.Divamods.Where(c => c.pvid == pvid - 100).First();
+                            }
+                            check2.a3da.Add(Path.GetFileNameWithoutExtension(file));
+                        }
+                    }
+
                 }
+
+                
 
                 a3dfixer a3Dfixer = new a3dfixer();
                 a3d newa3d = new a3d(0);
@@ -145,7 +185,7 @@ namespace ft_module_parser.pdaconversion.divax
                 }
             }
 
-            Console.WriteLine("Packing farcs...");
+            Logs.WriteLine("Packing farcs...");
             Tools.MassPackFolders("a3d", acpath + @"\rom\auth_3d\");
 
             return a3db;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DivaScriptConv;
+using MikuMikuModel.Logs;
 
 namespace ft_module_parser.pdaconversion.divax
 {
@@ -46,7 +47,7 @@ namespace ft_module_parser.pdaconversion.divax
                 {
                     args.Add("-e");
                     args.Add(dexfile);
-                    Console.WriteLine("PD_TOOL: DexReader: " + Path.GetFileName(dexfile));
+                    Logs.WriteLine("PD_TOOL: DexReader: " + Path.GetFileName(dexfile));
                 }
 
                 var check = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
@@ -71,7 +72,7 @@ namespace ft_module_parser.pdaconversion.divax
                     if (check.duet)
                     {
                         duet = true;
-                        Console.WriteLine("DSC: " + pvid + " FORCEDUET");
+                        Logs.WriteLine("DSC: " + pvid + " FORCEDUET");
                     }
                 }
 

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using MikuMikuLibrary.Databases;
 using System.IO;
 using MikuMikuLibrary.Models.Processing;
+using MikuMikuModel.Logs;
 
 namespace ft_module_parser.pdaconversion.divax
 {
@@ -27,7 +28,7 @@ namespace ft_module_parser.pdaconversion.divax
                 stage = staged.Stages.Where(c => c.Id == id).FirstOrDefault();
                 
             }
-            Console.WriteLine("new stage at id = " + id);
+            Logs.WriteLine("new stage at id = " + id);
             return id;
         }
 
@@ -44,7 +45,7 @@ namespace ft_module_parser.pdaconversion.divax
             }
             
             //id = (ushort)(staged.Objects.Max(c => c.Id) + 1);
-            Console.WriteLine("new object at id = " + id);
+            Logs.WriteLine("new object at id = " + id);
             return id;
         }
 
@@ -55,17 +56,15 @@ namespace ft_module_parser.pdaconversion.divax
             var texdb = new TextureDatabase();
 
             using (var farcArchive = BinaryFile.Load<FarcArchive>(filePath))
-            using (var entryStream = farcArchive.Open(farcArchive.Entries.Where(c => c.Contains("txi")).First(), EntryStreamMode.MemoryStream))
-                texdb.Load(entryStream);
-
-            using (var farcArchive = BinaryFile.Load<FarcArchive>(filePath))
-            using (var entryStream = farcArchive.Open(farcArchive.Entries.Where(c => c.Contains("txd")).First(), EntryStreamMode.MemoryStream))
-                textures.Load(entryStream);
-
-            using (var farcArchive = BinaryFile.Load<FarcArchive>(filePath))
-            using (var entryStream = farcArchive.Open(farcArchive.Entries.First(), EntryStreamMode.MemoryStream))
-                stgpv.Load(entryStream, textures, texdb);
-
+            {
+                using (var entryStream = farcArchive.Open(farcArchive.Entries.Where(c => c.Contains("txi")).First(), EntryStreamMode.MemoryStream))
+                    texdb.Load(entryStream);
+                using (var entryStream = farcArchive.Open(farcArchive.Entries.Where(c => c.Contains("txd")).First(), EntryStreamMode.MemoryStream))
+                    textures.Load(entryStream);
+                using (var entryStream = farcArchive.Open(farcArchive.Entries.First(), EntryStreamMode.MemoryStream))
+                    stgpv.Load(entryStream, textures, texdb);
+            }
+            
             foreach (var meshes in stgpv.Meshes)
             {
                 foreach (var submeshes in meshes.SubMeshes)
@@ -85,7 +84,7 @@ namespace ft_module_parser.pdaconversion.divax
             var le_model = new models();
             le_model.model = stgpv;
             le_model.fileName = filePath;
-            Console.WriteLine("Stripified " + Path.GetFileName(filePath));
+            Logs.WriteLine("Stripified " + Path.GetFileName(filePath));
             return le_model;
         }
 
@@ -152,15 +151,52 @@ namespace ft_module_parser.pdaconversion.divax
                 {
                     int pvid = int.Parse(Path.GetFileName(filePath).Substring(5, 3));
 
-                    var check2 = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
-                    if (check2 == null)
                     {
-                        divamods.Divamods.Add(new pdaconversion.divamods(pvid));
-                        check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
+                        var check2 = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
+                        if (check2 == null)
+                        {
+                            divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                            check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
+                        }
+                        check2.item_pv.Add(meshes.Name);
                     }
-                    check2.item_pv.Add(meshes.Name);
+
+                    {
+                        var check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).FirstOrDefault();
+                        if (check2 == null)
+                        {
+                            divamods.Divamods.Add(new pdaconversion.divamods(pvid - 100));
+                            check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).First();
+                        }
+                        check2.item_pv.Add(meshes.Name);
+                    }
                 }
-                
+
+                if (Path.GetFileName(filePath).Contains("hrc"))
+                {
+                    int pvid = int.Parse(Path.GetFileName(filePath).Substring(5, 3));
+
+                    {
+                        var check2 = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
+                        if (check2 == null)
+                        {
+                            divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                            check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
+                        }
+                        check2.item_pv.Add(meshes.Name);
+                    }
+
+                    {
+                        var check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).FirstOrDefault();
+                        if (check2 == null)
+                        {
+                            divamods.Divamods.Add(new pdaconversion.divamods(pvid - 100));
+                            check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).First();
+                        }
+                        check2.item_pv.Add(meshes.Name);
+                    }
+                }
+
                 var meshentry = new MeshEntry();
                 meshes.Id = counter;
                 meshentry.Id = (ushort)meshes.Id;
@@ -196,7 +232,7 @@ namespace ft_module_parser.pdaconversion.divax
 
                     foreach (var material in meshes.Materials)
                     {
-                        if (Path.GetFileName(filePath).Contains("hrc2"))
+                        if ((Path.GetFileName(filePath).Contains("hrc2")) || (Path.GetFileName(filePath).Contains("hrc")))
                         {
                             material.Shader = "ITEM";
                             material.IsAlphaEnabled = false;
@@ -228,7 +264,7 @@ namespace ft_module_parser.pdaconversion.divax
                             if (material.Specular.TextureId == 1509989155)
                             {
                                 material.Specular.TextureId = -1;
-                                
+                                material.SpecularColor = asdf;
                             }
                             //else { material.Field00 = 0x0000002D; }
 
