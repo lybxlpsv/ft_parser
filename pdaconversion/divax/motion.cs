@@ -4,6 +4,7 @@ using MikuMikuLibrary.Databases;
 using MikuMikuLibrary.IO;
 using MikuMikuLibrary.Motions;
 using MikuMikuModel.FarcPack;
+using MikuMikuModel.Logs;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -26,6 +27,7 @@ namespace ft_module_parser.pdaconversion.divax
                 if (check2 == null)
                 {
                     divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                    Logs.WriteLine("motions: Created new PV at id " + pvid);
                     check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
                 }
             }
@@ -38,6 +40,7 @@ namespace ft_module_parser.pdaconversion.divax
                 if (check2 == null)
                 {
                     divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                    Logs.WriteLine("motions: Created new PV at id " + pvid);
                     check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
                 }
                 check2.duet = true;
@@ -117,6 +120,7 @@ namespace ft_module_parser.pdaconversion.divax
                 if (check2 == null)
                 {
                     divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                    Logs.WriteLine("Motion: Created new PV at id " + (pvid));
                     check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
                 }
 
@@ -162,6 +166,7 @@ namespace ft_module_parser.pdaconversion.divax
                 if (check2 == null)
                 {
                     divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                    Logs.WriteLine("Motion: Created new PV at id " + (pvid));
                     check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
                     //check2.duet = true;
                 } 

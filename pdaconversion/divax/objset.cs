@@ -147,53 +147,39 @@ namespace ft_module_parser.pdaconversion.divax
                 meshes.SubMeshes.RemoveAll(x => x.Vertices == null || x.Vertices.Length == 0);
                 meshes.Name = meshes.Name.Replace("STGPV0", "STGPV8");
                 meshes.Name = meshes.Name.Replace("EFFPV", "STGPV");
-                if (Path.GetFileName(filePath).Contains("hrc2"))
-                {
-                    int pvid = int.Parse(Path.GetFileName(filePath).Substring(5, 3));
-
-                    {
-                        var check2 = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
-                        if (check2 == null)
-                        {
-                            divamods.Divamods.Add(new pdaconversion.divamods(pvid));
-                            check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
-                        }
-                        check2.item_pv.Add(meshes.Name);
-                    }
-
-                    {
-                        var check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).FirstOrDefault();
-                        if (check2 == null)
-                        {
-                            divamods.Divamods.Add(new pdaconversion.divamods(pvid - 100));
-                            check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).First();
-                        }
-                        check2.item_pv.Add(meshes.Name);
-                    }
-                }
 
                 if (Path.GetFileName(filePath).Contains("hrc"))
                 {
                     int pvid = int.Parse(Path.GetFileName(filePath).Substring(5, 3));
 
+                    if (pvid < 200)
+                    {
+                        pvid = pvid + 800;
+                    }
+
                     {
                         var check2 = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
                         if (check2 == null)
                         {
                             divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                            Logs.WriteLine("objset: Created new PV at id " + pvid);
                             check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
                         }
                         check2.item_pv.Add(meshes.Name);
+                        Logs.WriteLine("objset: Added item_pv for PV at id " + pvid + "," + meshes.Name);
                     }
 
+                    if (pvid >= 800)
                     {
                         var check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).FirstOrDefault();
                         if (check2 == null)
                         {
                             divamods.Divamods.Add(new pdaconversion.divamods(pvid - 100));
+                            Logs.WriteLine("objset: Created new PV at id " + (pvid - 100));
                             check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).First();
                         }
                         check2.item_pv.Add(meshes.Name);
+                        Logs.WriteLine("objset: Added item_pv for PV at id " + (pvid - 100) + "," + meshes.Name);
                     }
                 }
 

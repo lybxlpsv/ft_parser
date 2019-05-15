@@ -54,6 +54,7 @@ namespace ft_module_parser.pdaconversion.divax
                 if (check == null)
                 {
                     divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                    Logs.WriteLine("DSC: Created new PV at id " + (pvid));
                     check = divamods.Divamods.Where(c => c.pvid == pvid).First();
                 }
 

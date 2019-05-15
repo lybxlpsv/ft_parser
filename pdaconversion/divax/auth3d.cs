@@ -114,9 +114,9 @@ namespace ft_module_parser.pdaconversion.divax
                     }
                     else
                         A.MsgPackWriter(filepath);
-                    currentWorker--;
+                    Interlocked.Decrement(ref currentWorker);
                 }).Start();
-                currentWorker++;
+                Interlocked.Increment(ref currentWorker);
 
             }
 
@@ -138,41 +138,51 @@ namespace ft_module_parser.pdaconversion.divax
 
                 foreach (var i in a3da_lines)
                 {
-                    var u = i.Replace("EFFPV", "STGPV");
+                    var u = i.Replace("EFFPV", "STGPV").Replace("STGPV0", "STGPV8");
                     outp.WriteLine(u);
                 }
                 outp.Close();
+                
 
                 if ((divamods != null) && (file.Contains("STGPV")))
                 {
                     int pvid = int.Parse(Path.GetFileName(file).Substring(5, 3));
+
+                    if (pvid < 200)
+                    {
+                        pvid = pvid + 800;
+                    }
+
                     {
                         var check2 = divamods.Divamods.Where(c => c.pvid == pvid).FirstOrDefault();
                         if (check2 == null)
                         {
                             divamods.Divamods.Add(new pdaconversion.divamods(pvid));
+                            Logs.WriteLine("a3da: Created new PV at id " + (pvid));
                             check2 = divamods.Divamods.Where(c => c.pvid == pvid).First();
                         }
                         check2.a3da.Add(Path.GetFileNameWithoutExtension(file));
+                        Logs.WriteLine("a3da: Added a3d for PV at id " + pvid + "," + Path.GetFileNameWithoutExtension(file));
                     }
 
+                    if (pvid >= 800)
                     {
+                        
                         if (!Path.GetFileNameWithoutExtension(file).Contains("effpv"))
                         {
-                            var check2 = divamods.Divamods.Where(c => c.pvid == (pvid - 100)).FirstOrDefault();
+                            var check2 = divamods.Divamods.Where(c => c.pvid == (pvid)).FirstOrDefault();
                             if (check2 == null)
                             {
-                                divamods.Divamods.Add(new pdaconversion.divamods(pvid - 100));
-                                check2 = divamods.Divamods.Where(c => c.pvid == pvid - 100).First();
+                                divamods.Divamods.Add(new pdaconversion.divamods(pvid-100));
+                                Logs.WriteLine("a3da: Created new PV at id " + (pvid-100));
+                                check2 = divamods.Divamods.Where(c => c.pvid == (pvid-100)).First();
                             }
+                            Logs.WriteLine("a3da: Added a3d for PV at id " + (pvid -100) + "," + Path.GetFileNameWithoutExtension(file));
                             check2.a3da.Add(Path.GetFileNameWithoutExtension(file));
                         }
                     }
-
                 }
-
                 
-
                 a3dfixer a3Dfixer = new a3dfixer();
                 a3d newa3d = new a3d(0);
                 newa3d.id = a3db.a3d_dbs_uid.Max(c => c.id) + 1;
