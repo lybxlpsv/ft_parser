@@ -79,7 +79,7 @@ namespace ft_module_parser.pdaconversion.divax
                 else
                 {
                     pdaconversion.divax.mass_convert divax = new pdaconversion.divax.mass_convert();
-                    divax.Convert(x, ac + "\\objset\\obj_db.bin", "\\objset\\tex_db.bin", "\\stage_data.bin", "\\auth_3d\\auth_3d_db.bin", "\\rob\\mot_db.farc", ac);
+                    divax.Convert(x, ac + "\\rom\\objset\\obj_db.bin",  ac + "\\rom\\objset\\tex_db.bin", ac + "\\rom\\stage_data.bin", ac + "\\rom\\auth_3d\\auth_3d_db.bin", ac + "\\rom\\rob\\mot_db.farc", ac);
                 }
             }
             else
